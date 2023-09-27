@@ -35,6 +35,7 @@ Raman spectroscopy is a powerful analytical technique used in various scientific
 Window EXE: Contains a link to the executable .exe file for the application to run on Windows. 
 
 Databases: For users who wish to work on the code, the Jupyter Notebook for the creation of the two databases is available in the repository. The files may be easily converted to .py.
+The databases are also available here: https://drive.google.com/file/d/1ZoIzt2MXQP5-1vqUuQQsuP0d3J7I2G1e/view?usp=sharing and https://drive.google.com/file/d/1A6PjJOPmuCa-wqkDWG6O5zD4smgfvkV8/view?usp=sharing 
 
 Main.py: The main python code of the Raman Match application. 
 
@@ -42,7 +43,7 @@ Forsterite.txt: This is an example file you may use of the Raman spectrum of a n
 
 icon.ico: The icon for the application is provided in case the user wishes to compile a full version on their machine. 
 
-For MacBook users, the database codes should be ran once in your machine so the .db files are created (a link to the .db files is also available in the repository). Then you may simply run the python code in your terminal to use the software, without having to compile it. You may also use it through Jupyer Notebook. 
+For MacBook users, the database codes should be ran once in your machine so the .db files are created (a link to the .db files is also available above). Then you may simply run the python code in your terminal to use the software, without having to compile it. You may also use it through Jupyer Notebook. 
 
 
 For any questions of inquiries, please contact Meryem Berrada at berrada@hawaii.edu
