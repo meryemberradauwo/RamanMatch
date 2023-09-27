@@ -1,10 +1,12 @@
 # RamanMatch
 Application for Raman Spectroscopy Analysis
 
+A manuscript detailing the project is submitted for publication and may be cited as below: 
+
 Berrada, M., McFall, A., and Chen, B. (Submitted in October 2023) Raman Match: Application for Raman Spectroscopy Analysis. 
 Journal of Open Research Software.
 
-
+Here is the content of the first page of the manuscript: 
 
 Raman Match: Application for Raman Spectroscopy Analysis
 
@@ -28,3 +30,18 @@ complex task due to the large available database. The Raman Match application wa
 process. The application integrates the well-established RRUFF Raman database with the python programming language and provides 
 a user-friendly graphical interface for loading Raman spectra, identifying peaks, matching peaks to reference libraries, 
 visualizing the results, and produce publication ready figures. 
+
+
+
+
+
+# Description of Repository content: 
+
+Window EXE: Contains a link to the executable .exe file for the application to run on Windows. 
+Databases: For users who wish to work on the code, the Jupyter Notebook for the creation of the two databases is available in 
+the repository. The files may be easily converted to .py.
+Main.py: The main python code of the Raman Match application. 
+Forsterite.txt: This is an example file you may use of the Raman spectrum of a non-oriented Forsterite crystal. 
+icon.ico: The icon for the application is provided in case the user wishes to compile a full version on their machine. 
+
+For MacBook users, the database codes should be ran once in your machine so the .db files are created (a link to the .db files is also available in the repository). Then you may simply run the python code in your terminal to use the software, without having to compile it. You may also use it through Jupyer Notebook. 
