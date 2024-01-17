@@ -1,17 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Sep 22 17:51:52 2023
-
-@author: meryem
-"""
-import sys
 import time
 import tkinter as tk
 import os
+import csv
 import numpy as np
 import re
-#import requests
+import requests
 import zipfile
 import shutil
 import pandas as pd
@@ -24,6 +17,7 @@ import traceback
 import threading
 import traceback
 import sqlite3
+import matplotlib
 
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
@@ -39,7 +33,7 @@ from scipy.sparse import csc_matrix, diags
 from scipy.special import wofz
 from IPython.display import display, Image
 from PIL import Image, ImageTk 
-
+from tkinter import messagebox
 
 def gaussian(x, amp, mean, stddev):
     return amp * np.exp(-(x - mean)**2 / (2 * stddev**2))
@@ -53,7 +47,7 @@ def voigt(x, amp, mean, stddev, gamma):
 
     # Check for potential division by zero or very small values
     if np.any(np.abs(denominator) < 1e-10):
-        print("Division by zero or small denominator encountered.")
+        #print("Division by zero or small denominator encountered.")
         voigt_profile = np.zeros_like(x)
     else:
         wofz_result = wofz(z)
@@ -129,15 +123,7 @@ class RamanAnalyzer:
         self.background_subtraction_activeFigure1 = False
         self.original_spectrumFigure1 = None  # Initialize the variable for storing the original data
         
-        
-        if getattr(sys, 'frozen', False):
-            application_path = sys._MEIPASS
-        else:
-            application_path = os.path.dirname(os.path.abspath(__file__))
-
-        config_path = os.path.join(application_path, "RRUFFRaman_databaseSEARCH.db")
-
-        self.conn = sqlite3.connect(config_path)
+        self.conn = sqlite3.connect("RRUFFRaman_databaseSEARCH.db")
         self.cursor = self.conn.cursor()
 
         self.search_var = tk.StringVar()
@@ -148,7 +134,6 @@ class RamanAnalyzer:
 
         self.results_listbox = None
         self.selected_filename = None
-        
         
 
     def update_search(self, *args):
@@ -228,13 +213,6 @@ class RamanAnalyzer:
             # Hide the results listbox upon selection
             self.hide_results()
 
-  
-
-
-
-
-
-
 
     def enforce_minimum_size(self, event):
         # Enforce the minimum size when the window is resized
@@ -247,14 +225,10 @@ class RamanAnalyzer:
         # Create the tab control
         tab_control = ttk.Notebook(self.root)
         tab_control.pack(fill='both', expand=True)
-        
-        
 
         # Create the first tab - INSTRUCTION
         self.tab1 = ttk.Frame(tab_control)
         tab_control.add(self.tab1, text='Instructions')
-        
-        
 
         # Create the second tab with three panels (horizontal) - MANUAL
         self.tab2 = ttk.Frame(tab_control)
@@ -299,7 +273,7 @@ class RamanAnalyzer:
 
         # Set column widths
         for i, column in enumerate(self.table["columns"]):
-            self.table.column(column, width=column_widths[i] * 10)  # Adjust the multiplier as needed
+            self.table.column(column, width=column_widths[i] * 8)  # Adjust the multiplier as needed
 
         self.table.pack(fill="both", expand=True)
         
@@ -316,9 +290,8 @@ class RamanAnalyzer:
         # Bind the canvas scrolling to the scrollbar
         self.table_frame.bind("<Configure>", self.on_frame_configure)
         self.canvas.bind("<Configure>", self.on_canvas_configure)
+        
 
-        
-        
         # Create the third tab with three panels (horizontal) - AUTO
         self.tab3 = ttk.Frame(tab_control)
         tab_control.add(self.tab3, text='Auto')
@@ -331,12 +304,12 @@ class RamanAnalyzer:
 
         self.panel3_3 = tk.LabelFrame(self.tab3, text="", padx=10, pady=10)
         self.panel3_3.place(relx=0.720, rely=0.005, relwidth=0.28, relheight=0.988)
-        
+
         # Adjust grid configuration for panel3_2 to center the figures
-        #self.panel3_2.grid_rowconfigure(0, weight=1)
+        self.panel3_2.grid_rowconfigure(0, weight=1)
 
         # Set the width of panel3_3 to be 30% of the window width
-        #self.tab3.grid_columnconfigure(2, weight=0, minsize=self.root.winfo_width() * 10)
+        self.tab3.grid_columnconfigure(2, weight=0, minsize=self.root.winfo_width() * 10)
 
         
         
@@ -361,7 +334,7 @@ class RamanAnalyzer:
 
         # ----- FIGURE 1
         # Create a figure1 placeholder with adjusted size
-        self.figure1 = Figure(figsize=(6, 3), dpi=40)
+        self.figure1 = Figure(figsize=(6, 3), dpi=50)
 
         # Create a new frame for figure1 (top half)
         self.figure1_frame = ttk.Frame(self.panel3_2)
@@ -392,7 +365,7 @@ class RamanAnalyzer:
 
         # ------ FIGURE 2
         # Create a figure2 placeholder with adjusted size
-        self.figure2 = Figure(figsize=(6, 3), dpi=40)
+        self.figure2 = Figure(figsize=(6, 3), dpi=50)
 
         # Create a new frame for figure2 (bottom half)
         self.figure2_frame = ttk.Frame(self.panel3_2)
@@ -433,7 +406,7 @@ class RamanAnalyzer:
 
         # ----- FIGURE 4
         # Create a figure4 placeholder with adjusted size
-        self.figure4 = Figure(figsize=(6, 4), dpi=40)
+        self.figure4 = Figure(figsize=(6, 4), dpi=50)
 
         # Create a new frame for figure4 (top half)
         self.figure4_frame = ttk.Frame(self.panel2_2)
@@ -461,7 +434,7 @@ class RamanAnalyzer:
 
         # ------ FIGURE 5
         # Create a figure5 placeholder with adjusted size
-        self.figure5 = Figure(figsize=(6, 4), dpi=40)
+        self.figure5 = Figure(figsize=(6, 4), dpi=50)
 
         # Create a new frame for figure5 (bottom half)
         self.figure5_frame = ttk.Frame(self.panel2_2)
@@ -579,7 +552,7 @@ class RamanAnalyzer:
         manualtab_label = ttk.Label(self.tab1, text="In Manual tab:", wraplength=1100, anchor="w")
         manualtab_label.pack(anchor="w")
 
-        stepM2_label = ttk.Label(self.tab1, text="1. Load your Raman .txt file.", wraplength=1100, anchor="w")
+        stepM2_label = ttk.Label(self.tab1, text="1. Load your Raman file (.txt or .csv).", wraplength=1100, anchor="w")
         stepM2_label.pack(anchor="w")
 
         stepM3_label = ttk.Label(self.tab1,
@@ -606,7 +579,7 @@ class RamanAnalyzer:
         autotab_label = ttk.Label(self.tab1, text="In Auto tab:", wraplength=1100, anchor="w")
         autotab_label.pack(anchor="w")
 
-        stepA2_label = ttk.Label(self.tab1, text="1. Load your Raman .txt file.", wraplength=1100, anchor="w")
+        stepA2_label = ttk.Label(self.tab1, text="1. Load your Raman file (.txt or .csv).", wraplength=1100, anchor="w")
         stepA2_label.pack(anchor="w")
 
         stepA3_label = ttk.Label(self.tab1,
@@ -949,20 +922,17 @@ class RamanAnalyzer:
 
     def load_file_t3(self):
         prominence_value = float(self.prominence_textboxT3.get())
-        if (self.checkboxes):
-            #print('Removing checkboxes-F2')
+        if self.checkboxes:
             for checkbox in self.checkboxes:
                 checkbox.destroy()
             self.checkboxes.clear()
-            self.checkboxes = []
-        # clear figure4
+            #self.checkboxes = []
+
+        # Clear existing plots
         self.ax1.clear()
-
-        #self.library_textbox.delete(0, tk.END)  # Clear the existing text in the text field
-        #self.library_textbox.insert(tk.END, "")
-
-        # clear figure5
         self.ax2.clear()
+
+        # Set labels and titles for ax2
         self.ax2.set_xlabel('Raman shift (cm$^{-1}$)', fontsize=16)
         self.ax2.set_ylabel('Intensity (normalized)', fontsize=16)
         self.ax2.set_title("Top 3 Matches", loc='left', fontsize=16)
@@ -971,57 +941,53 @@ class RamanAnalyzer:
         self.figure2.canvas.draw()
         self.toolbar2.update()
 
-        # load new file
+        try:
+            if self.canvas3 is not None:
+                self.canvas3.get_tk_widget().pack_forget()
+                self.canvas3.get_tk_widget().destroy()
+                self.canvas3 = None
+
+                self.canvas3 = FigureCanvasTkAgg(self.figure3, master=self.figure3_frameP3)
+                self.canvas3.get_tk_widget().pack(side='left', fill='both', expand=True)
+
+                self.canvas3.get_tk_widget().bind('<Configure>', lambda event: self.canvas3.get_tk_widget().configure(
+                    scrollregion=self.canvas3.get_tk_widget().bbox("all")))
+        except:
+            pass
+
         try:
             file_path1 = filedialog.askopenfilename()
             file_name1 = os.path.basename(file_path1)
-
             self.file_textboxT3.delete(0, tk.END)
             self.file_textboxT3.insert(tk.END, file_name1)
 
-            data_lines = []
-            data_started = False
-            # Load the file data
-            with open(file_path1, 'r') as file:
-                lines = file.readlines()
+            if file_name1.lower().endswith('.csv'):
+                df = pd.read_csv(file_path1, header=None)  # Assuming there are no column headers
+                xy_data = df.to_numpy()
+            else:
+                with open(file_path1, 'r') as file:
+                    lines = file.readlines()
 
-            # Process the lines to find the start of the xy data
-            start_line_idx = 0
-            for idx, line in enumerate(lines):
-                if not line.strip():  # Skip empty lines
-                    continue
-                if not line.startswith('#'):  # Skip metadata lines
-                    start_line_idx = idx
-                    break
-
-            # Extract xy data from the lines
-            xy_data = [line.strip().split() for line in lines[start_line_idx:]]
-            xy_data = [[float(val.strip(',')) for val in row] for row in xy_data if len(row) == 2]
-
+                # Skip header and extract numeric data
+                xy_data = []
+                for line in lines[1:]:  # Start from the second line to skip the header
+                    try:
+                        values = [float(val.strip()) for val in line.strip().split('\t')]
+                        if len(values) == 2:
+                            xy_data.append(values)
+                    except ValueError:
+                        continue
 
             xy_data = np.array(xy_data)
-            # Normalize the y values
-            xy_data[:, 1] = (xy_data[:, 1] - np.min(xy_data[:, 1])) / (
-                np.max(xy_data[:, 1]) - np.min(xy_data[:, 1]))
+            xy_data[:, 1] = (xy_data[:, 1] - np.min(xy_data[:, 1])) / (np.max(xy_data[:, 1]) - np.min(xy_data[:, 1]))
 
-            xy_data = np.array(xy_data)
-            # Normalize the y values
-            xy_data[:, 1] = (xy_data[:, 1] - np.min(xy_data[:, 1])) / (
-                np.max(xy_data[:, 1]) - np.min(xy_data[:, 1]))
-
-            x_values = xy_data[:, 0]
-            y_values = xy_data[:, 1]
-
+            x_values, y_values = xy_data[:, 0], xy_data[:, 1]
             self.spectrumFigure1 = np.array([x_values, y_values]).T
+            self.peaks, _ = find_peaks(y_values, prominence=prominence_value)
 
-
-            self.peaks, _ = find_peaks(self.spectrumFigure1[:, 1], prominence=prominence_value)
-            #print("Selected Peaks using Prominence Value:", self.spectrumFigure4[self.peaks])
-
-            # plots on figure 1
-            self.ax1.clear()
-            self.ax1.plot(self.spectrumFigure1[:, 0], self.spectrumFigure1[:, 1], label='spectrum')
-            self.ax1.plot(self.spectrumFigure1[self.peaks, 0], self.spectrumFigure1[self.peaks, 1], 'ro', label='peaks')
+            # Plot on figure 1
+            self.ax1.plot(x_values, y_values, label='spectrum')
+            self.ax1.plot(x_values[self.peaks], y_values[self.peaks], 'ro', label='peaks')
             self.ax1.legend(loc='upper left', fontsize=14)
             self.ax1.set_xlabel('Raman shift (cm$^{-1}$)', fontsize=16)
             self.ax1.set_ylabel('Intensity (normalized)', fontsize=16)
@@ -1033,44 +999,33 @@ class RamanAnalyzer:
             self.figure1.canvas.draw()
 
         except Exception as e:
-            print("Exception:", e)
-            traceback.print_exc()
             printed_text = "Data File loaded has incorrect format"
-            self.text_field.insert("1.0", printed_text + "\n")  # Insert the error message into the text field
+            self.text_field.insert("1.0", printed_text + "\n")
 
-        # Store the original data in the 'original_spectrum' variable
+        # Store the original data
         self.original_spectrumFigure1 = self.spectrumFigure1.copy()
-        # Enable the subtract background button
         self.subtract_background_button_t3.configure(state="normal")
-        
-
 
 
     def load_file(self):
         prominence_value = float(self.prominence_textboxT2.get())
         if (self.checkboxes_t2):
-            #print('Removing checkboxes-F2')
             for checkbox in self.checkboxes_t2:
                 checkbox.destroy()
             self.checkboxes_t2.clear()
-            self.checkboxes_t2 = []
-        # clear figure4
+
+        # clear existing data in the plots
         self.ax4.clear()
-
-        #self.library_textbox.delete(0, tk.END)  # Clear the existing text in the text field
-        #self.library_textbox.insert(tk.END, "")
-
-        # clear figure5
         self.ax5.clear()
+
         self.ax5.set_xlabel('Raman shift (cm$^{-1}$)', fontsize=16)
         self.ax5.set_ylabel('Intensity (normalized)', fontsize=16)
-        self.ax5.set_title("Top 3 Matches", loc='left', fontsize=16)
+        self.ax5.set_title("Rerefence Files", loc='left', fontsize=16)
         self.ax5.tick_params(axis='x', labelsize=16)
         self.ax5.tick_params(axis='y', labelsize=16)
         self.figure5.canvas.draw()
         self.toolbar5.update()
 
-        # load new file
         try:
             file_path1 = filedialog.askopenfilename()
             file_name1 = os.path.basename(file_path1)
@@ -1078,71 +1033,51 @@ class RamanAnalyzer:
             self.file_textboxT2.delete(0, tk.END)
             self.file_textboxT2.insert(tk.END, file_name1)
 
-            data_lines = []
-            data_started = False
-            # Load the file data
-            with open(file_path1, 'r') as file:
-                lines = file.readlines()
+            if file_name1.lower().endswith('.csv'):
+                df = pd.read_csv(file_path1, header=None)  # Assuming there are no column headers
+                xy_data = df.to_numpy()
+            else:
+                with open(file_path1, 'r') as file:
+                    lines = file.readlines()
 
-            # Process the lines to find the start of the xy data
-            start_line_idx = 0
-            for idx, line in enumerate(lines):
-                if not line.strip():  # Skip empty lines
-                    continue
-                if not line.startswith('#'):  # Skip metadata lines
-                    start_line_idx = idx
-                    break
+                start_line_idx = 0
+                for idx, line in enumerate(lines):
+                    if not line.strip():
+                        continue
+                    if not line.startswith('#'):
+                        start_line_idx = idx
+                        break
 
-            # Extract xy data from the lines
-            xy_data = [line.strip().split() for line in lines[start_line_idx:]]
-            xy_data = [[float(val.strip(',')) for val in row] for row in xy_data if len(row) == 2]
-
+                xy_data = [line.strip().split() for line in lines[start_line_idx:]]
+                xy_data = [[float(val.strip(',')) for val in row] for row in xy_data if len(row) == 2]
 
             xy_data = np.array(xy_data)
-            # Normalize the y values
-            xy_data[:, 1] = (xy_data[:, 1] - np.min(xy_data[:, 1])) / (
-                np.max(xy_data[:, 1]) - np.min(xy_data[:, 1]))
+            xy_data[:, 1] = (xy_data[:, 1] - np.min(xy_data[:, 1])) / (np.max(xy_data[:, 1]) - np.min(xy_data[:, 1]))
 
-            xy_data = np.array(xy_data)
-            # Normalize the y values
-            xy_data[:, 1] = (xy_data[:, 1] - np.min(xy_data[:, 1])) / (
-                np.max(xy_data[:, 1]) - np.min(xy_data[:, 1]))
-
-            x_values = xy_data[:, 0]
-            y_values = xy_data[:, 1]
-
+            x_values, y_values = xy_data[:, 0], xy_data[:, 1]
             self.spectrumFigure4 = np.array([x_values, y_values]).T
 
+            self.peaks, _ = find_peaks(y_values, prominence=prominence_value)
 
-            self.peaks, _ = find_peaks(self.spectrumFigure4[:, 1], prominence=prominence_value)
-            #print("Selected Peaks using Prominence Value:", self.spectrumFigure4[self.peaks])
-
-            # plots on figure 1
-            self.ax4.clear()
-            self.ax4.plot(self.spectrumFigure4[:, 0], self.spectrumFigure4[:, 1], label='spectrum')
-            self.ax4.plot(self.spectrumFigure4[self.peaks, 0], self.spectrumFigure4[self.peaks, 1], 'ro', label='peaks')
+            self.ax4.plot(x_values, y_values, label='spectrum')
+            self.ax4.plot(x_values[self.peaks], y_values[self.peaks], 'ro', label='peaks')
             self.ax4.legend(loc='upper left', fontsize=14)
             self.ax4.set_xlabel('Raman shift (cm$^{-1}$)', fontsize=16)
             self.ax4.set_ylabel('Intensity (normalized)', fontsize=16)
             self.ax4.set_title("Loaded File", loc='left', fontsize=16)
             self.ax4.tick_params(axis='x', labelsize=16)
             self.ax4.tick_params(axis='y', labelsize=16)
-
-            # Update the plot
             self.figure4.canvas.draw()
 
         except Exception as e:
-            print("Exception:", e)
-            traceback.print_exc()
+            #print("Exception:", e)
+            #traceback.print_exc()
             printed_text = "Data File loaded has incorrect format"
-            self.text_field.insert("1.0", printed_text + "\n")  # Insert the error message into the text field
+            self.text_field.insert("1.0", printed_text + "\n")
 
-        # Store the original data in the 'original_spectrum' variable
         self.original_spectrumFigure4 = self.spectrumFigure4.copy()
-        # Enable the subtract background button
         self.subtract_background_button_t2.configure(state="normal")
 
-                
     def remove_selected_peaks(self):
         entered_x_values = self.remove_peaks_text.get("1.0", "end-1c")  # Get the content of the Text widget
 
@@ -1184,8 +1119,8 @@ class RamanAnalyzer:
 
 
             except Exception as e:
-                print("Exception:", e)
-                traceback.print_exc()
+                #print("Exception:", e)
+                #traceback.print_exc()
                 printed_text = "Invalid input. Please enter valid numbers."
                 self.text_field.insert("1.0", printed_text + "\n")  # Insert the error message into the text field
 
@@ -1244,8 +1179,8 @@ class RamanAnalyzer:
 
 
             except Exception as e:
-                print("Exception:", e)
-                traceback.print_exc()
+                #print("Exception:", e)
+                #traceback.print_exc()
                 printed_text = "Invalid input. Please enter valid numbers."
                 self.text_field.insert("1.0", printed_text + "\n")  # Insert the error message into the text field
 
@@ -1304,11 +1239,10 @@ class RamanAnalyzer:
         # Update the plot
         self.figure1.canvas.draw()
 
-        printed_text = "Auto: Value of threshold for identifying peaks in data is " + str(self.prominence_value)
-        self.text_field.insert("1.0", printed_text + "\n")  # Insert the new message into the text field
+        #printed_text = "Auto: Value of threshold for identifying peaks in data is " + str(self.prominence_value)
+        #self.text_field.insert("1.0", printed_text + "\n")  # Insert the new message into the text field
         self.prominence_textboxT3.delete(0, tk.END)  # Clear the existing text in the text field
-        self.prominence_textboxT3.insert(0,
-                                         self.prominence_value)  # Insert the new threshold value back into the text field
+        self.prominence_textboxT3.insert(0, self.prominence_value)  # Insert the new threshold value back into the text field
 
  
 
@@ -1343,25 +1277,17 @@ class RamanAnalyzer:
         self.file_textboxT3 = ttk.Entry(self.panel3_1)
         self.file_textboxT3.place(relx=0.1, rely=0.06, relwidth=0.8)
 
-        self.prominence_labelT3 = tk.Label(self.panel3_1, text="Peak threshold:",
-                                            justify="left", anchor="center")
+        self.prominence_labelT3 = tk.Label(self.panel3_1, text="Peak threshold:", justify="left", anchor="center")
         self.prominence_labelT3.place(relx=0.03, rely=0.2)
-        self.prominence_labelT3.bind('<Configure>', lambda e: self.prominence_labelT3.config(
-            wraplength=self.prominence_labelT3.winfo_width()))
-
+        self.prominence_labelT3.bind('<Configure>', lambda e: self.prominence_labelT3.config(wraplength=self.prominence_labelT3.winfo_width()))
         self.prominence_textboxT3 = ttk.Entry(self.panel3_1)
         self.prominence_textboxT3.insert(0, "0.15")  # Set the default value
         self.prominence_textboxT3.place(relx=0.55, rely=0.2, relwidth=0.3)
-
-        # Call the handle_threshold_entry function when Entry
         self.prominence_textboxT3.bind("<Return>", self.handle_prominence_entryT3)
-
-        self.threshold_label = tk.Label(self.panel3_1, text="Standard deviation:",
-                                         justify="left", anchor="center")
+        
+        self.threshold_label = tk.Label(self.panel3_1, text="Standard deviation:", justify="left", anchor="center")
         self.threshold_label.place(relx=0.03, rely=0.27)
-        self.threshold_label.bind('<Configure>',
-                                  lambda e: self.threshold_label.config(wraplength=self.threshold_label.winfo_width()))
-
+        self.threshold_label.bind('<Configure>', lambda e: self.threshold_label.config(wraplength=self.threshold_label.winfo_width()))
         self.threshold_textbox = ttk.Entry(self.panel3_1)
         self.threshold_textbox.insert(0, "0.01")  # Set the default value
         self.threshold_textbox.place(relx=0.65, rely=0.27, relwidth=0.3)
@@ -1453,35 +1379,35 @@ class RamanAnalyzer:
         
         # Create entry fields for ARPLS parameters (without labels)
         self.arpls_lam_var = tk.StringVar(value=str(1e4))
-        self.arpls_lam_entry = ttk.Entry(self.tab2, width=7, textvariable=self.arpls_lam_var)
+        self.arpls_lam_entry = ttk.Entry(self.tab2, width=6, textvariable=self.arpls_lam_var)
         self.arpls_lam_entry.place(relx=0.05, rely=0.165)
         self.arpls_lam_entry.bind("<FocusOut>", self.update_arpls_parameters)
 
         self.arpls_ratio_var = tk.StringVar(value=str(0.05))
-        self.arpls_ratio_entry = ttk.Entry(self.tab2, width=4, textvariable=self.arpls_ratio_var)
-        self.arpls_ratio_entry.place(relx=0.1, rely=0.165)
+        self.arpls_ratio_entry = ttk.Entry(self.tab2, width=3, textvariable=self.arpls_ratio_var)
+        self.arpls_ratio_entry.place(relx=0.11, rely=0.165)
         self.arpls_ratio_entry.bind("<FocusOut>", self.update_arpls_parameters)
 
         self.arpls_itermax_var = tk.StringVar(value=str(100))
         self.arpls_itermax_entry = ttk.Entry(self.tab2, width=3, textvariable=self.arpls_itermax_var)
-        self.arpls_itermax_entry.place(relx=0.135, rely=0.165)
+        self.arpls_itermax_entry.place(relx=0.145, rely=0.165)
         self.arpls_itermax_entry.bind("<FocusOut>", self.update_arpls_parameters)
         
         
         # Create entry fields for ARPLS parameters (without labels)
         self.arpls_lam_varT3 = tk.StringVar(value=str(1e4))
-        self.arpls_lam_entryT3 = ttk.Entry(self.tab3, width=7, textvariable=self.arpls_lam_varT3)
+        self.arpls_lam_entryT3 = ttk.Entry(self.tab3, width=6, textvariable=self.arpls_lam_varT3)
         self.arpls_lam_entryT3.place(relx=0.05, rely=0.165)
         self.arpls_lam_entryT3.bind("<FocusOut>", self.update_arpls_parametersT3)
 
         self.arpls_ratio_varT3 = tk.StringVar(value=str(0.05))
-        self.arpls_ratio_entryT3 = ttk.Entry(self.tab3, width=4, textvariable=self.arpls_ratio_varT3)
-        self.arpls_ratio_entryT3.place(relx=0.1, rely=0.165)
+        self.arpls_ratio_entryT3 = ttk.Entry(self.tab3, width=3, textvariable=self.arpls_ratio_varT3)
+        self.arpls_ratio_entryT3.place(relx=0.11, rely=0.165)
         self.arpls_ratio_entryT3.bind("<FocusOut>", self.update_arpls_parametersT3)
 
         self.arpls_itermax_varT3 = tk.StringVar(value=str(100))
         self.arpls_itermax_entryT3 = ttk.Entry(self.tab3, width=3, textvariable=self.arpls_itermax_varT3)
-        self.arpls_itermax_entryT3.place(relx=0.135, rely=0.165)
+        self.arpls_itermax_entryT3.place(relx=0.145, rely=0.165)
         self.arpls_itermax_entryT3.bind("<FocusOut>", self.update_arpls_parametersT3)
         
         #fit_button = tk.Button(self.tab2, text="Gaussian fit", command=self.fit_gaussian)
@@ -1516,8 +1442,8 @@ class RamanAnalyzer:
         # Update the plot
         self.figure4.canvas.draw()
 
-        printed_text = "Auto: Value of threshold for identifying peaks in data is " + str(self.prominence_value)
-        self.text_field.insert("1.0", printed_text + "\n")  # Insert the new message into the text field
+        #printed_text = "Auto: Value of threshold for identifying peaks in data is " + str(self.prominence_value)
+        #self.text_field.insert("1.0", printed_text + "\n")  # Insert the new message into the text field
         self.prominence_textboxT2.delete(0, tk.END)  # Clear the existing text in the text field
         self.prominence_textboxT2.insert(0, self.prominence_value)  # Insert the new threshold value back into the text field
 
@@ -1535,11 +1461,15 @@ class RamanAnalyzer:
 
         while (not self.plot_enable):
             self.root.update()
-
-        self.populate_figure1()
-        self.populate_figure2()
-        self.populate_figure3()
-
+            
+        try:
+            self.populate_figure1()
+            self.populate_figure2()
+            self.populate_figure3()
+        except Exception as e:
+            messagebox.showerror("Error Occurred", f"An error occurred: {e}")
+            self.match_button.configure(state="normal")
+        
         self.cancel_button.place_forget()
         self.match_button.place(relx=0.145, rely=0.72, relwidth=0.7, relheight=0.05)
         self.match_button.configure(state="normal")
@@ -1602,16 +1532,7 @@ class RamanAnalyzer:
         self.matches = {}
 
         try:
-            if getattr(sys, 'frozen', False):
-                application_path = sys._MEIPASS
-            else:
-                application_path = os.path.dirname(os.path.abspath(__file__))
-
-            db_path = os.path.join(application_path, 'RRUFFRaman_database.db')
-
-            with sqlite3.connect(db_path) as db_connection:
-
-            #with sqlite3.connect('RRUFFRaman_database.db') as db_connection:
+            with sqlite3.connect('RRUFFRaman_database.db') as db_connection:
                 db_cursor = db_connection.cursor()
                 
                 # Create an Excel workbook and sheet
@@ -1640,6 +1561,7 @@ class RamanAnalyzer:
                         elements = components[7]
                         x_data = components[8]
                         filename = components[1]
+                        #y_data = components[9]
                         
                         condition_1 = abs(x_data - peak) / peak <= threshold_value
 
@@ -1694,16 +1616,13 @@ class RamanAnalyzer:
                 self.plot_enable = True
 
         except Exception as e:
-            printed_text = "Unexpected behaviour in Matching"
-            self.text_field.insert("1.0", printed_text + "\n")  # Insert the error message into the text field
+            messagebox.showerror("Error Occurred", f"Unexpected behaviour in Matching: {e}")
             self.cancel_button.place_forget()
             self.match_button.place(relx=0.145, rely=0.72, relwidth=0.7, relheight=0.05)
             self.match_button.configure(state="normal")
-            print(e)
 
         db_connection.close()
         self.root.update()  # Update the GUI
-
 
     def populate_figure1(self):
         # Clear the previous data from the figure
@@ -1715,9 +1634,9 @@ class RamanAnalyzer:
         for peak, mineral in self.matches.items():
             idx = np.where(self.spectrumFigure1[:, 0] == peak)[0][0]
             x = peak
-            y = self.spectrumFigure1[idx, 1] + 0.02
+            y = self.spectrumFigure1[idx, 1] + 0.06
             y = min(y, 1.0)
-            self.ax1.text(x, y, mineral[0], ha='center', rotation=45, va='bottom', fontsize=14,
+            self.ax1.text(x, y, mineral[0], ha='center', rotation=90, va='bottom', fontsize=14,
                           transform=self.ax1.transData)
 
         self.ax1.legend(loc='upper left', fontsize=14)
@@ -1726,6 +1645,12 @@ class RamanAnalyzer:
         self.ax1.set_title("Loaded File", loc='left', fontsize=16)
         self.ax1.tick_params(axis='x', labelsize=16)
         self.ax1.tick_params(axis='y', labelsize=16)
+        self.toolbar1.update()
+
+        new_ylim = (0, 2.0)  # Replace with your desired y-limit
+
+        self.ax1.set_ylim(new_ylim)
+
         self.toolbar1.update()
 
         # Redraw the canvas to update the figure
@@ -1746,14 +1671,6 @@ class RamanAnalyzer:
         self.checkboxes.clear()
         self.root.update()
 
-        # Determine the database path based on the application's execution mode
-        if getattr(sys, 'frozen', False):
-            application_path = sys._MEIPASS
-        else:
-            application_path = os.path.dirname(os.path.abspath(__file__))
-
-        db_path = os.path.join(application_path, 'RRUFFRaman_databaseSEARCH.db')
-
         # Get the mineral names and associated data from self.matches
         mineral_names = [mineral_name for _, (mineral_name, _) in self.matches.items()]
         file_names = [file_name for _, (_, file_name) in self.matches.items()]
@@ -1763,55 +1680,67 @@ class RamanAnalyzer:
             self.text_field.insert("1.0", printed_text + "\n")
             self.root.update()
         else:
-            # Plot the mineral names and associated data from self.matches
-            colors = ['coral', 'darkturquoise', 'yellowgreen']
+            # Count the occurrences of each file name
+            file_counts = {file_name: file_names.count(file_name) for file_name in file_names}
 
+            # Sort the file names based on their counts in descending order
+            sorted_file_names = sorted(file_counts.keys(), key=lambda file_name: file_counts[file_name], reverse=True)
+
+            # Select the top 3 unique file names
+            top_3_file_names = []
+            for file_name in sorted_file_names:
+                if file_name not in top_3_file_names:
+                    top_3_file_names.append(file_name)
+                if len(top_3_file_names) == 3:
+                    break
+
+            # Get the mineral names for the top 3 files
+            top_3_mineral_names = [file_name.split("_")[0] for file_name in top_3_file_names]
+
+            # Plot the mineral names and associated data for the top 3 unique matches
+            colors = ['coral', 'darkturquoise', 'yellowgreen']
             self.ax2.set_prop_cycle('color', colors)
-            for i, (mineral_name, file_name) in enumerate(zip(mineral_names[:3], file_names[:3])):
+
+            for i, (mineral_name, file_name) in enumerate(zip(top_3_mineral_names, top_3_file_names)):
                 try:
-                    with sqlite3.connect(db_path) as db_connection:
+                    with sqlite3.connect('RRUFFRaman_databaseSEARCH.db') as db_connection:
                         db_cursor = db_connection.cursor()
 
-                        # Retrieve XY data from the database based on the file name
+                        # Replace 'database_tableSEARCH' with the actual table name in your database
                         query = "SELECT x_data, y_data FROM database_tableSEARCH WHERE filename = ?"
                         db_cursor.execute(query, (file_name,))
-                        xy_data = db_cursor.fetchall()
+                        result = db_cursor.fetchone()  # Get the result as a tuple
 
-                        x_data, y_data = [], []
-                        if xy_data:
-                            x_data_str, y_data_str = xy_data[0]
-                            x_data = [float(val) for val in x_data_str.strip('[]').split(', ')]
-                            y_data = [float(val) for val in y_data_str.strip('[]').split(', ')]
+                        if result is not None:
+                            x_data_str, y_data_str = result  # Extract 'x_data' and 'y_data' strings from the tuple
+                            x_data_list = [float(val) for val in x_data_str.strip('[]').split(', ')]
+                            y_data_list = [float(val) for val in y_data_str.strip('[]').split(', ')]
 
-                        # Normalize y_data
-                        max_intensity = max(y_data)
-                        y_data_normalized = [val / max_intensity for val in y_data]
+                            # Plot the Raman spectrum using 'x_data' as the x-axis values
+                            self.linefg, = self.ax2.plot(x_data_list, y_data_list, label=f"{file_name}")
 
-                        # Plot the Raman spectrum
-                        # Plot the XY data as a single line
-                        self.linefg, = self.ax2.plot(x_data, y_data_normalized, label=f"{file_name}")
+                            self.lines_fg2.append(self.linefg)
 
-                        # Append the line object to the list
-                        self.lines_fg2.append(self.linefg)
+                            self.checkbox_var = tk.BooleanVar(value=True)  # Default value is True for visibility
+                            self.checkbox_vars.append(self.checkbox_var)
 
-                        self.checkbox_var = tk.BooleanVar(value=True)  # Default value is True for visibility
-                        self.checkbox_vars.append(self.checkbox_var)
+                            self.checkbox = ttk.Checkbutton(self.panel3_1, text=f"{mineral_name}",
+                                                            variable=self.checkbox_var,
+                                                            command=lambda index=i: self.toggle_visibility(index))
+                            self.checkbox.place(relx=0.07, rely=0.84 + i * 0.04)
 
-                        self.checkbox = ttk.Checkbutton(self.panel3_1, text=f"{mineral_name}",
-                                                        variable=self.checkbox_var,
-                                                        command=lambda index=i: self.toggle_visibility(index))
-                        self.checkbox.place(relx=0.07, rely=0.84 + i * 0.04)
-
-                        self.checkboxes.append(self.checkbox)
-                        self.root.update()
+                            self.checkboxes.append(self.checkbox)
+                            self.root.update()
+                        else:
+                            print(f"No data found for file_name: {file_name}")
 
                 except Exception as e:
                     # Handle any database connection or query errors here
                     print(f"Error retrieving data from the database: {e}")
 
             self.ax2.legend(loc='upper left', fontsize=14)
-            self.ax2.set_xlabel('X Axis Label', fontsize=16)  # Replace with your x-axis label
-            self.ax2.set_ylabel('Normalized Y Axis', fontsize=16)  # Replace with your y-axis label
+            self.ax2.set_xlabel('Raman shift (cm$^{-1}$)', fontsize=16)
+            self.ax2.set_ylabel('Normalized Intensity', fontsize=16)
             self.ax2.set_title("Top 3 Matches", loc='left', fontsize=16)
             self.ax2.tick_params(axis='x', labelsize=16)
             self.ax2.tick_params(axis='y', labelsize=16)
@@ -1825,23 +1754,19 @@ class RamanAnalyzer:
             printed_text = "Top3Matches.png saved"
             self.text_field.insert("1.0", printed_text + "\n")
             self.root.update()
-    
+
     def toggle_visibility(self, index):
-        if 0 <= index < len(self.lines_fg2):
-            line = self.lines_fg2[index]
-            if self.checkbox_vars[index].get():
-                line.set_visible(True)
-            else:
-                line.set_visible(False)
-            self.figure2.canvas.draw()
-        else:
-            pass
-            #print(f"Invalid index: {index}")
-            self.linefg.set_visible(self.checkbox_var.get())
+        self.checkbox_var = self.checkbox_vars[index]
+        #print('Visibility:', index, len(self.lines_fg2), len(self.checkbox_vars), self.checkbox_var.get())
+        #print(self.lines_fg2[0])
+        #print(self.lines_fg2[1])
+        #print(self.lines_fg2[2])
+
+        self.linefg = self.lines_fg2[index]  # Retrieve the line based on the index
+        self.linefg.set_visible(self.checkbox_var.get())
         self.figure2.canvas.draw()
 
     def populate_figure3(self):
-        #        global axs
         # Sort the matches dictionary based on peak location in ascending order
         sorted_matches = sorted(self.matches.items(), key=lambda x: x[0])
 
@@ -1851,22 +1776,28 @@ class RamanAnalyzer:
 
         if len(sorted_matches) > 0:
             # Create a new figure and subplots
-            self.figure3, axs = plt.subplots(len(sorted_matches), 1, figsize=(2, len(sorted_matches) * 1.5))
-            font_size = 10
+            self.figure3, axs = plt.subplots(len(sorted_matches), 1, figsize=(2.8, len(sorted_matches)))
+            font_size = 9
 
             # Create the canvas for the actual figure3
             self.canvas3 = FigureCanvasTkAgg(self.figure3, master=self.figure3_frameP3)
 
-            # Create the scrollbar for panel3_3
-            self.scrollbarP3 = ttk.Scrollbar(self.figure3_frameP3, command=self.canvas3.get_tk_widget().yview)
-            self.scrollbarP3.pack(side='right', fill='y')
-            self.canvas3.get_tk_widget().config(yscrollcommand=self.scrollbarP3.set)
+            # Create a frame to hold the scrollable canvas
+            scrollable_frame = ttk.Frame(self.figure3_frameP3)
+            scrollable_frame.pack(side='right', fill='both', expand=True)
+
+            # Create a vertical scrollbar for the scrollable frame
+            scrollbar = ttk.Scrollbar(scrollable_frame, orient='vertical', command=self.canvas3.get_tk_widget().yview)
+            scrollbar.pack(side='right', fill='y')
+
+            # Configure the canvas to scroll with the scrollbar
+            self.canvas3.get_tk_widget().config(yscrollcommand=scrollbar.set)
+
+            # Bind the canvas to update the scroll region
+            self.canvas3.get_tk_widget().bind('<Configure>', lambda event: self.canvas3.get_tk_widget().configure(
+                scrollregion=self.canvas3.get_tk_widget().bbox('all')))
 
             self.canvas3.get_tk_widget().pack(side='left', fill='both', expand=True)
-
-            # Configure the canvas to scroll the figure
-            self.canvas3.get_tk_widget().bind('<Configure>', lambda event: self.canvas3.get_tk_widget().configure(
-                scrollregion=self.canvas3.get_tk_widget().bbox("all")))
 
             # Iterate through the sorted matches and create bar charts for mineral names and percentages
             for i, (peak, (mineral_name, _)) in enumerate(sorted_matches):
@@ -1890,13 +1821,12 @@ class RamanAnalyzer:
 
                 # Create a color map for the bars based on percentages
                 #cmap = plt.cm.get_cmap('RdYlGn')
-                cmap = plt.colormaps['RdYlGn']  
-
+                cmap = matplotlib.colormaps['RdYlGn']
                 norm = plt.Normalize(min(percentages), max(percentages))
                 colors = cmap(norm(percentages))
 
                 # Adjust the scaling factor for bar length
-                scaling_factor = 0.02  # Modify this value to change the bar length
+                scaling_factor = 0.005  # Modify this value to change the bar length
 
                 # Plot the bars with adjusted length
                 ax.barh(range(len(mineral_names)), percentages * scaling_factor, color=colors, height=0.8,
@@ -1913,7 +1843,7 @@ class RamanAnalyzer:
                 ax.axis('off')
 
                 # Set the title to the peak location with bold font
-                ax.set_title(f"Peak: {peak} (cm$^{{-1}}$)", fontsize=12, fontweight='bold', loc='left',
+                ax.set_title(f"Peak: {peak} (cm$^{{-1}}$)", fontsize=10, fontweight='bold', loc='left',
                              pad=12)  # Adjust the 'pad' value to change the spacingset_title(f"Peak: {peak} (cm$^{{-1}}$)", fontsize=16, fontweight='bold')
 
             # Adjust spacing between subplots
@@ -1921,21 +1851,12 @@ class RamanAnalyzer:
 
             # Enable zooming and panning
             self.canvas3.draw()
-
+        
     def cancel_button_click(self):
         #print('Cancel Pressed!')
         self.cancel_flag.set()
         printed_text = "Match Cancelled."
         self.text_field.insert("1.0", printed_text + "\n")
-        
-
-    def update_search(self, *args):
-        search_term = self.search_var.get().lower()
-
-        if search_term:
-            self.show_results(search_term)
-        else:
-            self.hide_results()
 
     def run(self):
         self.root.mainloop()
