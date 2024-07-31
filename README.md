@@ -32,6 +32,10 @@ For MacOS/Linux system users, the database codes should be ran once in your mach
 
 # INSTRUCTIONS
 Windows: Download .exe file or run the python code (GUI) on your preferred platform.
-MacOS/Linus: Download the python code (GUI) on your preferred platform. 
+
+MacOS/Linus: Download the python code (GUI) on your preferred platform. Run the database codes first. 
 
 For any questions of inquiries, please contact Meryem Berrada at berrada@hawaii.edu
+
+# UPDATES
+July 31, 2024: Databases updated to include all of the RRUFF files. Previously, the code only gathered the "excellent" and "fair" files. 
