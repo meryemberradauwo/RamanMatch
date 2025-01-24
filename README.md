@@ -39,3 +39,6 @@ For any questions of inquiries, please contact Meryem Berrada at berrada@hawaii.
 
 # UPDATES
 July 31, 2024: Databases updated to include all of the RRUFF files. Previously, the code only gathered the "excellent" and "fair" files. 
+January 23, 2025: Microplastic database is added. Python code is shared, .exe file is coming soon. 
+
+Thank you :)
