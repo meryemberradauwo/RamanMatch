@@ -35,6 +35,8 @@ from IPython.display import display, Image
 from PIL import Image, ImageTk 
 from tkinter import messagebox
 
+#exe_dir = sys._MEIPASS if hasattr(sys, "_MEIPASS") else os.path.abspath(".") # required for .exe
+
 def gaussian(x, amp, mean, stddev):
     return amp * np.exp(-(x - mean)**2 / (2 * stddev**2))
 
